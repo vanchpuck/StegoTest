@@ -8,19 +8,19 @@ package ru.jonnygold.stego;
  *
  * @author Vanchpuck
  */
-public class Byte {
+class Byte {
     
     private byte value;
     private int idx = 0;
     private byte fltr = java.lang.Byte.parseByte("00000001", 2);
     
-    public Byte(){
+    protected Byte(){
         this.value = 0;
         this.idx = 0;
         this.fltr = java.lang.Byte.parseByte("00000001", 2);
     }
     
-    public Byte(byte b){
+    protected Byte(byte b){
 //        if(b>127 || b<-128){
 //            throw new IllegalArgumentException("Value out of range. Value: "+b);
 //        }
