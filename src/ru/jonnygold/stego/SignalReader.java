@@ -12,7 +12,7 @@ import ru.jonnygold.wavelet.Signal;
  * @author Vanchpuck
  */
 interface SignalReader {
-    
+ 
     public int readSecret(Signal signal) ;
-    
+ 
 }

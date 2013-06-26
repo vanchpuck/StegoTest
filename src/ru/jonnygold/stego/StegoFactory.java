@@ -11,10 +11,10 @@ import java.io.IOException;
  *
  * @author Vanchpuck
  */
-public interface StegoFactory {
-    
+interface StegoFactory {
+ 
     public Stego createStego(File file) throws IOException;
-    
+
     public void putStego(File file, Stego stego) throws IOException;
-    
+ 
 }

@@ -1,34 +1,31 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+* To change this template, choose Tools | Templates
+* and open the template in the editor.
+*/
 package ru.jonnygold.stego;
 
 /**
- *
- * @author Vanchpuck
- */
-public class Byte {
-    
+*
+* @author Vanchpuck
+*/
+class Byte {
+
     private byte value;
     private int idx = 0;
     private byte fltr = java.lang.Byte.parseByte("00000001", 2);
-    
-    public Byte(){
+
+    protected Byte(){
         this.value = 0;
         this.idx = 0;
         this.fltr = java.lang.Byte.parseByte("00000001", 2);
     }
-    
-    public Byte(byte b){
-//        if(b>127 || b<-128){
-//            throw new IllegalArgumentException("Value out of range. Value: "+b);
-//        }
+
+    protected Byte(byte b){
         this.value = b;
         this.idx = 0;
         this.fltr = java.lang.Byte.parseByte("00000001", 2);
     }
-    
+
     public int getNextBit(){
         if(idx == 8){
             idx = 0;
@@ -36,17 +33,17 @@ public class Byte {
         }
         int bit = (fltr & (value >> idx));
         idx++;
-        
+
         return bit;
     }
-    
+
     public int getBit(int position){
         if(position<0 || position>7){
             throw new IllegalArgumentException("Недопустимая позиция бита");
         }
         return (fltr & (value >> position));
     }
-    
+
     public void setBit(int bit, int position){
         if(position<0 || position>7){
             throw new IllegalArgumentException("Недопустимая позиция бита");
@@ -56,11 +53,11 @@ public class Byte {
             case 0 : value = (byte) (value & ~(1 << position)); break;
             default : throw new IllegalArgumentException("Value out of range. Value: "+bit);
         }
-               
+
     }
-    
+
     public byte getValue(){
         return this.value;
     }
-    
+
 }

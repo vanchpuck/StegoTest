@@ -4,17 +4,10 @@
  */
 package ru.jonnygold.stegotest;
 
-import com.sun.image.codec.jpeg.JPEGEncodeParam;
-import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
+
 import java.io.*;
 import java.security.NoSuchAlgorithmException;
-import javax.imageio.*;
-import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
-import javax.imageio.stream.ImageInputStream;
-import javax.imageio.stream.ImageOutputStream;
 import ru.jonnygold.stego.*;
-import ru.jonnygold.wavelet.*;
 
 /**
  *
@@ -24,81 +17,76 @@ public class StegoTest {
 
     String fileName;
     byte[] fileData;
-    
+
     public StegoTest() throws IOException, NoSuchAlgorithmException, Exception{
-        
+
+        /*
+        * В корне создаём папки test и restored.
+        * В папку test кидаем файлик, который хотим запрятать.
+        * В корень кидаем файл, в который будем прятать.
+        * Запускаем программу.
+        * При выполнении программа записывает содержимое файла в стего и затем счтывает в папку restored.
+        */
+
         File dir = new File("test");
+
+        // Пройдёмся по содержимому папки и обработаем все файлы
         for(File f : dir.listFiles()){
             File secretFile = f;
+
+            /**** ПИШЕМ В СТЕГО ****/
 
             // Считываем картинку
             File in = new File("test.bmp");
 
+            // Создаём стего
             FileStegoCover cover = new FileStegoCover(in);
 
-            StegoWriter sw = new StegoWriter(cover.getStego());  
-            System.out.println("capacity: "+sw.getCapacity());
-            getFileContent(secretFile);        
+            // Создаём писателя с шифрованием 
+            Writeble sw = new CryptoStegoWriter(new StegoWriter(cover.getStego())); 
+
+            // Вместимость стего в байтах
+            System.out.println("CAPACITY: "+sw.getCapacity());
+
+            // Тут просто получаем содержимое файла.
+            getFileContent(secretFile); 
+
+            // Пишем в стего (В данном случае пишем файл, но тип можно изменить, например - на текст)
             sw.write(new Secret(Secret.Type.FILE, fileName.getBytes(), fileData));
+            
+            // Получаем файл с записанной в него стеганограммой
             in = cover.getFile();
 
 
-            /**************/
+            /**** ЧИТАЕМ ИЗ СТЕГО ****/
+            
+            // Создаём стего из файла
             FileStegoCover coverRead = new FileStegoCover(in);
-            StegoReader sr = new StegoReader(coverRead.getStego());
+
+            // Создаём крипто-читателя 
+            Readeble sr = new CryptoStegoReader(new StegoReader(coverRead.getStego()));
+
+            // Считываем сообщение
             Secret s = sr.read();
 
-            System.out.println("attachment: "+new String(s.getAttachment()));
+            // getAttachment возавращает имя файла (в случае передачи текстового сообщения поле ничего не содержит)
             String fName = "restored//"+new String(s.getAttachment());
 
-            FileOutputStream fos = new FileOutputStream(new File(fName));
+            // Создаём новый файл
+            File res = new File(fName); 
+            res.createNewFile();
 
+            // Поток для записи в файл
+            FileOutputStream fos = new FileOutputStream(res);
+
+            // Получаем данные (getData()) и пишем их в поток
             fos.write(s.getData());
-
             fos.flush();
             fos.close();
         }
-        /**************/
-        
-//        BufferedImage img = ImageIO.read(in);
-//                
-//        Signal signal = ImageProcessor.getSignal(img, 0);
-//        
-//        // Создаём стего
-////        Stego stego = StegoFactory_1.createStego(signal);
-//        StegoFactory sFactory = new ImageStegoFactory();
-//        Stego stego = sFactory.createStego(in);
-        
-//        /*** Пишем в стего ***/
-//        StegoWriter sw = new StegoWriter(stego);  
-//        System.out.println("Capacity: "+sw.getCapacity());
-//        StringBuilder sb = new StringBuilder(25160);
-//        for(int i=0;i<4;i++){
-//            sb.append("q");
-//        }
-//        System.out.println("Start writing...");
-////        sw.write(new Secret(Secret.Type.TEXT, "Мама мыла раму!!!".getBytes()));
-//        sw.write(new Secret(Secret.Type.TEXT, sb.toString().getBytes()));
-//     
-//        BufferedImage img_1 = img;
-//        ImageProcessor.setBand(img_1, signal, 0);
-//        write(in, img_1);
-////        ImageIO.write(img, "jpg", new File("test111.jpg"));
-//        
-//        
-//        
-//        /*** Читаем стего ***/
-//        // Создаём копию стего (как быдто мы его из файла достали)
-//        Stego stg = StegoFactory_1.createStego(stego.getSignal(0));
-////        Stego stg = sFactory.createStego(new File("out.png"));
-//        
-//        StegoReader sr = new StegoReader(stg);        
-//        byte[] bb = sr.read().getData();
-//        String out = new String(bb);        
-//        System.out.println(out);
 
     }
-    
+
     public void getFileContent(File f) throws FileNotFoundException, IOException{
         fileName = f.getName();
         System.out.println("fName: "+fileName);
@@ -107,38 +95,39 @@ public class StegoTest {
         is.read(fileData, 0, is.available());
         is.close();
     }
-    
-    public void write(File in, RenderedImage inImg) throws FileNotFoundException, IOException{
-        
-        ImageReader ir = ImageIO.getImageReadersByFormatName("png").next();
-        ImageWriter iw = ImageIO.getImageWritersByFormatName("png").next();
-        
-        ImageInputStream iis = ImageIO.createImageInputStream(in);
-        ImageOutputStream ios = ImageIO.createImageOutputStream(new File("out.png"));
-        
-        ir.setInput(iis);
-        iw.setOutput(ios);
-        
-//        ir.getImageMetadata(0);
-        
-        ImageWriteParam wp = iw.getDefaultWriteParam();
-//        wp.setCompressionMode(JPEGImageWriteParam.MODE_EXPLICIT);
-//        wp.setCompressionQuality(1);
-        
-        
-//        IIOImage img = new IIOImage(inImg, null, null);
-        IIOImage img = new IIOImage(inImg, null, ir.getImageMetadata(0));
-        
-        
-        
-        iw.write(null, img, wp);
-        
-    }
-    
+
+    // public void write(File in, RenderedImage inImg) throws FileNotFoundException, IOException{
+    // 
+    // ImageReader ir = ImageIO.getImageReadersByFormatName("png").next();
+    // ImageWriter iw = ImageIO.getImageWritersByFormatName("png").next();
+    // 
+    // ImageInputStream iis = ImageIO.createImageInputStream(in);
+    // ImageOutputStream ios = ImageIO.createImageOutputStream(new File("out.png"));
+    // 
+    // ir.setInput(iis);
+    // iw.setOutput(ios);
+    // 
+    //// ir.getImageMetadata(0);
+    // 
+    // ImageWriteParam wp = iw.getDefaultWriteParam();
+    //// wp.setCompressionMode(JPEGImageWriteParam.MODE_EXPLICIT);
+    //// wp.setCompressionQuality(1);
+    // 
+    // 
+    //// IIOImage img = new IIOImage(inImg, null, null);
+    // IIOImage img = new IIOImage(inImg, null, ir.getImageMetadata(0));
+    // 
+    // 
+    // 
+    // iw.write(null, img, wp);
+    // 
+    // }
+
     /**
-     * @param args the command line arguments
-     */
+    * @param args the command line arguments
+    */
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, Exception {
+        System.out.println("Main");
         new StegoTest();
     }
 }

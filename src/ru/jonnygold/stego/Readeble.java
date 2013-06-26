@@ -11,7 +11,7 @@ import java.io.IOException;
  * @author Vanchpuck
  */
 public interface Readeble {
-    
+ 
     public Secret read() throws IOException;
-    
+ 
 }
