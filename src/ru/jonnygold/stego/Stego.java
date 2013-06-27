@@ -14,7 +14,7 @@ import ru.jonnygold.wavelet.filters.WaveletFilter;
  *
  * @author Vanchpuck
  */
-public class Stego {
+class Stego {
  
     private File file;
 

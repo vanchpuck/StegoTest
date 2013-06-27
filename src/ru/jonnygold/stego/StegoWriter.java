@@ -26,16 +26,18 @@ public class StegoWriter implements Writeble{
     protected static final int MAX_ATTACHMENT_LEN = 512;
 
 
-    private Stego stego;
+//    private Stego stego;
 
     private int xIdx;
     private int yIdx;
     private int sIdx;
 
     private SignalWriter sWriter;
+    
+    protected StegoCover stegoCover;
 
-    public StegoWriter(Stego stego){
-        this.stego = stego;
+    public StegoWriter(StegoCover stegoCover){
+        this.stegoCover = stegoCover;
 
         sWriter = new HaarSignalWriter();
 
@@ -77,6 +79,9 @@ public class StegoWriter implements Writeble{
         //System.out.println("dLn: "+data.getData().length);
         writeInt(data.getData().length);
         writeData(data.getData());
+        
+        // Выгружаем данные из памяти в контейнер
+        stegoCover.putIn();
 
     }
 
@@ -89,6 +94,8 @@ public class StegoWriter implements Writeble{
     public int getCapacity() {
         Signal signal = null;
 
+        Stego stego = stegoCover.getStego();
+        
         int cpct = 0;
         for(int s=0; s<stego.getSignalCount(); s++){
 
@@ -140,6 +147,8 @@ public class StegoWriter implements Writeble{
         Signal signal = null;
         // System.out.println("c: "+stego.getSignalCount());
 
+        Stego stego = stegoCover.getStego();
+        
         for(int s=sIdx; s<stego.getSignalCount(); s++){
 
         // System.out.println("sIdx: "+sIdx);

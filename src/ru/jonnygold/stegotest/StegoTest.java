@@ -40,10 +40,10 @@ public class StegoTest {
             File in = new File("test.bmp");
 
             // Создаём стего
-            FileStegoCover cover = new FileStegoCover(in);
+            StegoCover cover = new FileStegoCover(in);
 
             // Создаём писателя с шифрованием 
-            Writeble sw = new CryptoStegoWriter(new StegoWriter(cover.getStego())); 
+            Writeble sw = new CryptoStegoWriter(new StegoWriter(cover)); 
 
             // Вместимость стего в байтах
             System.out.println("CAPACITY: "+sw.getCapacity());
@@ -53,9 +53,7 @@ public class StegoTest {
 
             // Пишем в стего (В данном случае пишем файл, но тип можно изменить, например - на текст)
             sw.write(new Secret(Secret.Type.FILE, fileName.getBytes(), fileData));
-            
-            // Получаем файл с записанной в него стеганограммой
-            in = cover.getFile();
+
 
 
             /**** ЧИТАЕМ ИЗ СТЕГО ****/
@@ -64,7 +62,7 @@ public class StegoTest {
             FileStegoCover coverRead = new FileStegoCover(in);
 
             // Создаём крипто-читателя 
-            Readeble sr = new CryptoStegoReader(new StegoReader(coverRead.getStego()));
+            Readeble sr = new CryptoStegoReader(new StegoReader(coverRead));
 
             // Считываем сообщение
             Secret s = sr.read();

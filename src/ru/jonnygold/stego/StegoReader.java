@@ -23,7 +23,7 @@ public class StegoReader implements Readeble{
 
     private static final int STEGO_MARK = 0x7fffffff;
 
-    private Stego stego;
+//    private Stego stego;
     private WaveletTransformer transformer;
 
     private int xPos;
@@ -31,9 +31,11 @@ public class StegoReader implements Readeble{
     private int sPos;
 
     private SignalReader sReader;
+    
+    private StegoCover stegoCover;
 
-    public StegoReader(Stego stego){
-        this.stego = stego;
+    public StegoReader(StegoCover stegoCover){
+        this.stegoCover = stegoCover;
         this.transformer = new WaveletTransformer(HaarFilter.getInstance(), SimpleTransform.getInstance());
         this.xPos = 0;
         this.yPos = 0;
@@ -138,6 +140,7 @@ public class StegoReader implements Readeble{
         Signal signal = null;
 
         // System.out.println("count: "+stego.getSignalCount());
+        Stego stego = stegoCover.getStego();
 
         for(int s=sPos; s<stego.getSignalCount(); s++){
 

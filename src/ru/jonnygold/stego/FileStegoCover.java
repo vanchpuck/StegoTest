@@ -11,7 +11,7 @@ import java.io.*;
 *
 * @author Vanchpuck
 */
-public class FileStegoCover {
+public class FileStegoCover extends StegoCover{
 
     private Stego stego;
 
@@ -27,13 +27,16 @@ public class FileStegoCover {
         initialise(file);
     }
 
-    public Stego getStego(){
+    protected Stego getStego(){
         return this.stego;
     }
 
-    public File getFile() throws IOException{
+    /**
+     * Puts steganograms into file, which associated with this FileStegoCover object
+     * @throws IOException 
+     */
+    public void putIn() throws IOException{
         factory.putStego(file, stego);
-        return file;
     }
 
     private void initialise(File file) throws IOException{
