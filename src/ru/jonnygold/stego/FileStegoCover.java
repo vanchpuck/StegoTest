@@ -32,9 +32,9 @@ public class FileStegoCover extends StegoCover{
     }
 
     /**
-     * Puts steganograms into file, which associated with this FileStegoCover object
-     * @throws IOException 
-     */
+    * Puts steganograms into file, which associated with this FileStegoCover object
+    * @throws IOException 
+    */
     public void putIn() throws IOException{
         factory.putStego(file, stego);
     }
@@ -42,17 +42,7 @@ public class FileStegoCover extends StegoCover{
     private void initialise(File file) throws IOException{
         this.file = file;
 
-        // File type determination
-        String fileName = file.getName();
-        String type = fileName.substring(fileName.lastIndexOf(".")+1, fileName.length());
-
-        // Stego initialisation
-        if(type.equals("bmp") || type.equals("png") || type.equals("gif") ){
-            factory = ImageStegoFactory.getInstance();
-        }
-        else{
-            throw new IOException("Формат файла не поддерживается");
-        }
+        factory = ImageStegoFactory.getInstance();
 
         this.stego = factory.createStego(file);
     }

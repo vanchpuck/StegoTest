@@ -5,12 +5,14 @@
 package ru.jonnygold.stego;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import java.awt.image.Raster;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -33,48 +35,53 @@ class ImageStegoFactory implements StegoFactory{
     private ImageStegoFactory(){}
 
     public static ImageStegoFactory getInstance(){
-    if(factory == null){
-        return new ImageStegoFactory();
-    }
-    return factory;
+        if(factory == null){
+            return new ImageStegoFactory();
+        }
+        return factory;
     }
 
     @Override
     public Stego createStego(File file) throws IOException {
 
-    // BufferedImage bi = ImageIO.read(file);
-    // List<Signal> sl = new ArrayList<Signal>();
-    // sl.addAll(getSignalList(bi));
+        // BufferedImage bi = ImageIO.read(file);
+        // List<Signal> sl = new ArrayList<Signal>();
+        // sl.addAll(getSignalList(bi));
 
-    // Initialize List to hold amount of Signals
-    List<Signal> signalList = new ArrayList<Signal>();
+            // File type determination
+        String type = getFileExt(file);
 
-    // Prepare reader
-    ImageReader reader = ImageIO.getImageReadersByFormatName(getFileExt(file)).next(); 
-    ImageInputStream inStream = ImageIO.createImageInputStream(file); 
-    reader.setInput(inStream);
+            if(!type.equalsIgnoreCase("bmp") && !type.equalsIgnoreCase("png") && !type.equalsIgnoreCase("jpg") ){
+                    throw new IOException("Формат файла не поддерживается");
+            }
 
-    // Read all images from file
-    BufferedImage image = null;
-    try{
+        // Initialize List to hold amount of Signals
+        List<Signal> signalList = new ArrayList<Signal>();
+
+
+        // Prepare reader
+        // ImageReader reader = ImageIO.getImageReadersByFormatName(getFileExt(file)).next(); 
+        // ImageInputStream inStream = ImageIO.createImageInputStream(file); 
+        // reader.setInput(inStream);
+
+        // Read all images from file
         /*** НА ДАННОМ ЭТАПЕ ПИШЕМ ТОЛЬКО В ПЕРВОЕ ИЗОБРАЖЕНИЕ ***/
-        for(int i=0; i<1; i++){
-            image = reader.read(i, null);
-            //System.out.println("Get image from file");
+        BufferedImage image = ImageIO.read(file);
 
-            // Get signal from image and add it into the List
-            signalList.addAll(getSignalList(image));
+        int imgType = image.getType();
+        if(
+                    imgType != BufferedImage.TYPE_3BYTE_BGR
+            &&	imgType != BufferedImage.TYPE_4BYTE_ABGR
+            &&	imgType != BufferedImage.TYPE_4BYTE_ABGR_PRE
+            &&	imgType != BufferedImage.TYPE_BYTE_GRAY
+        ){
+            throw new IOException("Inappropriate image type. Only 24, 32 bit images and grayscale images are desired.");
         }
-    }
-    catch(IndexOutOfBoundsException ex){}
 
-    inStream.flush();
-    inStream.close();
-    reader.dispose();
+        signalList.addAll(getSignalList(image));
 
-    // Create and return stego
-    return new Stego(signalList);
-        // return new Stego(sl);
+        // Create and return stego
+        return new Stego(signalList);
     }
 
     public void putStego(File file, Stego stego) throws IOException{
@@ -82,56 +89,25 @@ class ImageStegoFactory implements StegoFactory{
         // Image container retrieving
         BufferedImage image = ImageIO.read(file);
 
-        // ///////***///////
-        // 
-        // putSignal(image, stego.getSignalList());
-        // 
-        // int w = image.getWidth();
-        // int h = image.getHeight();
-        // System.out.println("w: "+w);
-        // System.out.println("h: "+h);
-        // 
-        // int[] d = new int[w*h];
-        // image.getData().getSamples(0, 0, w, h, 0, d);
-        //// for(int i : d){
-        //// System.out.print(i+" ");
-        //// }
-        // System.out.println();
-        // 
-        // ImageIO.write(image, getFileExt(file), file);
-        // 
-        // 
-        // image = ImageIO.read(file);
-        // int[] dd = new int[image.getWidth()*image.getHeight()];
-        // image.getData().getSamples(0, 0, w, h, 0, dd);
-        //// for(int i : dd){
-        //// System.out.print(i+" ");
-        //// }
-        // System.out.println();
-        // 
-        // System.out.println("----");
-        // for(int i=0; i<d.length; i++){
-        // if(d[i] != dd[i]){
-        // System.out.println("i = "+i+" / "+d[i]+" != "+dd[i]);
-        // }
-        // }
-        // System.out.println("----");
-        // 
-        // 
-        // ///////***///////
+        // Convert JPG into PNG (JPG in not supported yet)
+        String fileExt = getFileExt(file);
+        if(getFileExt(file).equalsIgnoreCase("JPG")) {
+            fileExt = "PNG"; 
+        }
 
-        // ImageWriter initialising
-        ImageWriter writer = ImageIO.getImageWritersByFormatName(getFileExt(file)).next();
-        ImageOutputStream outStream = ImageIO.createImageOutputStream(file);
-        writer.setOutput(outStream);
 
         putSignal(image, stego.getSignalList());
 
-        writer.write(image);
+        // if(getFileExt(file).equals("JPG")) {
+        // 	file.renameTo(new File(getFileName(file)+".png"));
+        // }
 
-        outStream.flush();
-        outStream.close();
-        writer.dispose();
+        ImageIO.write(image, fileExt, file);
+
+
+        if(getFileExt(file).equals("JPG")) {
+            file.renameTo(new File(getFileName(file)+".png"));
+        }
 
     }
 
@@ -148,7 +124,7 @@ class ImageStegoFactory implements StegoFactory{
         Raster raster = image.getRaster();
 
 
-        // Get signal from color band component and add int into List of Signals
+        // Get signal from color band component and add into the List of Signals
         double[] data = new double[width * height]; 
         for(int i=0; i<raster.getNumBands(); i++){
             //System.out.println(" Get color band "+i);
@@ -180,9 +156,6 @@ class ImageStegoFactory implements StegoFactory{
             normalize(data);
             raster.setSamples(0, 0, width, height, i, data);
         }
-
-
-    // return null;
     }
 
     private void normalize(double[] data){
@@ -194,7 +167,12 @@ class ImageStegoFactory implements StegoFactory{
 
     private String getFileExt(File file){
         String fileName = file.getName();
-        return fileName.substring(fileName.lastIndexOf(".")+1, fileName.length());
+        return fileName.substring(fileName.lastIndexOf(".")+1, fileName.length()).toUpperCase();
     }
- 
+
+    private String getFileName(File file){
+        String fileName = file.getName();
+        return fileName.substring(0, fileName.lastIndexOf("."));
+    }
+
 }
